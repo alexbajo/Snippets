@@ -1,0 +1,97 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Canva</title>
+		<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+		<script src="jcanvas.min.js"></script>
+	</head>
+	<body style="text-align: center;"><p>Canva</p>
+
+		<select id="comboalumnos">
+			<option> - </option>
+		</select><br><br><button onclick="descargarCanvas()">Descargar Imagen</button>
+		<br><br>
+		<canvas width="1000px" height="1500px" style="width: 100%;max-width: 420px;"></canvas>
+		<script type="text/javascript">
+			var colorfondo = '#006';
+
+
+
+			function pintarnota(nota,posx,posy,h,w) {
+
+				for (i = 1; i < 11; i++) {
+					$('canvas').drawRect({
+						fillStyle: (nota>=i)? '#0f0' : '#f00',
+						x: posx+i*(w+5), y: posy,
+						width: w,
+						height: h
+					});  
+				}
+				
+			}
+			$('canvas').drawRect({
+				fillStyle: '#006',
+				x: 100, y: 200,
+				width: 5000,
+				height: 6500
+			});
+
+			
+			var datosajax;
+			$.ajax({
+				url: 'https://api.airtable.com/v0/appYcoVqlGviXfkVU/Alumnos?maxRecords=3&view=Completa',
+				type: 'GET',
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', 'Bearer keyAL99St0JmggaYp');
+				},
+				data: {},
+				success: function (data) { 
+					datosajax = data;
+				console.log(datosajax); 
+				data.records.forEach(element => $('#comboalumnos').append($('<option>').val(element.id).text(element.fields.Nombre)));
+				//console.log(data.records.find(obj => obj.id === "rec9CF32vR8VuT9Qj"));
+			}
+		});
+
+			$( "#comboalumnos" ).change(function() {
+				cargarCanvas(datosajax);
+			});
+
+			function cargarCanvas(datosajax){
+				$.get( "save.php?url="+datosajax.records.find(obj => obj.id === $( "#comboalumnos  option:selected" ).val()).fields.ImagenPrincipal[0].url + "&archivo="+$( "#comboalumnos  option:selected" ).text()+"fondo.jpg").done(function() {
+						$('canvas').drawRect({
+						fillStyle: '#006',
+						x: 100, y: 200,
+						width: 5000,
+						height: 6500
+						});
+						$('canvas').drawText({
+							fillStyle: '#36c',
+							fontStyle: 'bold',
+							fontSize: '20pt',
+							fontFamily: 'Trebuchet MS, sans-serif',
+							text: $( "#comboalumnos  option:selected" ).text(),
+							x: 500, y: 400,
+							maxWidth: 300
+						});
+						$('canvas').drawImage({
+							source: $( "#comboalumnos  option:selected" ).text()+"fondo.jpg",
+							x: 150, y: 150,width: 50, height: 50,
+						});
+						pintarnota(datosajax.records.find(obj => obj.id === $( "#comboalumnos  option:selected" ).val()).fields.Tema1,100,500,10,10);
+						pintarnota(datosajax.records.find(obj => obj.id === $( "#comboalumnos  option:selected" ).val()).fields.Tema2,100,550,10,10);
+						pintarnota(datosajax.records.find(obj => obj.id === $( "#comboalumnos  option:selected" ).val()).fields.Tema3,100,600,10,10);
+						pintarnota(datosajax.records.find(obj => obj.id === $( "#comboalumnos  option:selected" ).val()).fields.Tema4,100,650,10,10);
+				});
+			}
+			
+			function descargarCanvas(){
+			  var link = document.createElement('a');
+			  link.download = 'filename.png';
+			  link.href = $('canvas').getCanvasImage();
+			  link.click();
+			}
+		</script>
+	</body>
+	</html>
